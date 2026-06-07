@@ -34,7 +34,7 @@ public class EmployeeRepository : IEmployeeRepository
 
         return employee;
     }
-
+   
     public async Task<Employee> CreateEmployee(CreateEmployeeDto createEmployeeDto)
     {
         if (string.IsNullOrWhiteSpace(createEmployeeDto.FullName))
@@ -74,54 +74,40 @@ public class EmployeeRepository : IEmployeeRepository
 
         return employee;
     }
-
-    public async Task<Employee> UpdateEmployee(Employee employee)
+ 
+    public async Task<Employee> UpdateEmployee(int id, CreateEmployeeDto dto)
     {
         var employeeExist = await _dbContext.Employees
-            .FirstOrDefaultAsync(e => e.Id == employee.Id);
+            .FirstOrDefaultAsync(e => e.Id == id);
 
         if (employeeExist == null)
-        {
             throw new Exception("Employee not found");
-        }
 
-        if (string.IsNullOrWhiteSpace(employee.FullName))
-        {
+        if (string.IsNullOrWhiteSpace(dto.FullName))
             throw new Exception("Full Name is required");
-        }
 
-        if (string.IsNullOrWhiteSpace(employee.Email))
-        {
+        if (string.IsNullOrWhiteSpace(dto.Email))
             throw new Exception("Email is required");
-        }
 
-        if (string.IsNullOrWhiteSpace(employee.Department))
-        {
+        if (string.IsNullOrWhiteSpace(dto.Department))
             throw new Exception("Department is required");
-        }
 
         var emailExists = await _dbContext.Employees
-            .AnyAsync(e =>
-                e.Email.ToLower() == employee.Email.ToLower()
-                && e.Id != employee.Id);
+            .AnyAsync(e => e.Email.ToLower().Trim() == dto.Email.ToLower().Trim()
+                           && e.Id != id);
 
         if (emailExists)
-        {
             throw new Exception("Another employee already uses this email");
-        }
 
-        employeeExist.FullName = employee.FullName;
-        employeeExist.Email = employee.Email;
-        employeeExist.Department = employee.Department;
-        employeeExist.DateJoined = employee.DateJoined;
+        employeeExist.FullName = dto.FullName;
+        employeeExist.Email = dto.Email;
+        employeeExist.Department = dto.Department;
 
-        _dbContext.Employees.Update(employeeExist);
-
+        // DO NOT touch DateJoined
         await _dbContext.SaveChangesAsync();
 
         return employeeExist;
     }
-
     public async Task<bool> DeleteEmployee(int id)
     {
         var employee = await _dbContext.Employees
@@ -139,7 +125,7 @@ public class EmployeeRepository : IEmployeeRepository
         return true;
     }
 
-    public async Task<IEnumerable<LeaveRequest>> GetEmployeeLeaves(int employeeId)
+    public async Task<IEnumerable<Leave>> GetEmployeeLeaves(int employeeId)
     {
         var employee = await _dbContext.Employees
             .FirstOrDefaultAsync(e => e.Id == employeeId);
@@ -157,3 +143,4 @@ public class EmployeeRepository : IEmployeeRepository
         return leaves;
     }
 }
+

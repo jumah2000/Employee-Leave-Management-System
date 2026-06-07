@@ -1,6 +1,6 @@
 ﻿namespace EmployeeLeaveManagementSystem.Model;
 
-public class LeaveRequest
+public class Leave
 {
     public int Id { get; set; }
     public int EmployeeId { get; set; }

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EmployeeLeaveManagementSystem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260602120718_Initial")]
+    [Migration("20260607193448_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -53,7 +53,7 @@ namespace EmployeeLeaveManagementSystem.Migrations
                     b.ToTable("Employees");
                 });
 
-            modelBuilder.Entity("EmployeeLeaveManagementSystem.Model.LeaveRequest", b =>
+            modelBuilder.Entity("EmployeeLeaveManagementSystem.Model.Leave", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -92,7 +92,7 @@ namespace EmployeeLeaveManagementSystem.Migrations
                     b.ToTable("LeaveRequests");
                 });
 
-            modelBuilder.Entity("EmployeeLeaveManagementSystem.Model.LeaveRequest", b =>
+            modelBuilder.Entity("EmployeeLeaveManagementSystem.Model.Leave", b =>
                 {
                     b.HasOne("EmployeeLeaveManagementSystem.Model.Employee", "Employee")
                         .WithMany("LeaveRequests")

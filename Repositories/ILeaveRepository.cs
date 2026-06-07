@@ -5,23 +5,23 @@ namespace EmployeeLeaveManagementSystem.Repositories;
 
 public interface ILeaveRepository
 {
-    Task<IEnumerable<LeaveRequest>> GetAllLeaves();
+    Task<IEnumerable<Leave>> GetAllLeaves();
 
-    Task<LeaveRequest> GetLeaveById(int id);
+    Task<Leave> GetLeaveById(int id);
 
-    Task<LeaveRequest> CreateLeave(CreateLeaveDto dto);
+    Task<Leave> CreateLeave(CreateLeaveDto dto);
 
-    Task<LeaveRequest> UpdateLeave(LeaveRequest leave);
+    Task<Leave> UpdateLeave(int id, CreateLeaveDto dto);
 
     Task<bool> DeleteLeave(int id);
 
-    Task<IEnumerable<LeaveRequest>> GetLeavesByStatus(string status);
+    Task<IEnumerable<Leave>> GetLeavesByStatus(string status);
 
-    Task<LeaveRequest> ApproveLeave(int id);
+    Task<Leave> ApproveLeave(int id);
 
-    Task<LeaveRequest> RejectLeave(int id);
+    Task<Leave> RejectLeave(int id);
 
-    Task<IEnumerable<LeaveRequest>> GetCurrentLeaves();
+    Task<IEnumerable<Leave>> GetCurrentLeaves();
     
     Task<IEnumerable<object>> GetDepartmentStatistics();
 }

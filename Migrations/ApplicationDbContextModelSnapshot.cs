@@ -50,7 +50,7 @@ namespace EmployeeLeaveManagementSystem.Migrations
                     b.ToTable("Employees");
                 });
 
-            modelBuilder.Entity("EmployeeLeaveManagementSystem.Model.LeaveRequest", b =>
+            modelBuilder.Entity("EmployeeLeaveManagementSystem.Model.Leave", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -89,7 +89,7 @@ namespace EmployeeLeaveManagementSystem.Migrations
                     b.ToTable("LeaveRequests");
                 });
 
-            modelBuilder.Entity("EmployeeLeaveManagementSystem.Model.LeaveRequest", b =>
+            modelBuilder.Entity("EmployeeLeaveManagementSystem.Model.Leave", b =>
                 {
                     b.HasOne("EmployeeLeaveManagementSystem.Model.Employee", "Employee")
                         .WithMany("LeaveRequests")

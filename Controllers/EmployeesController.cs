@@ -16,7 +16,7 @@ public class EmployeesController : ControllerBase
         _employeeRepository = employeeRepository;
     }
 
-    [HttpGet]
+    [HttpGet("GetAllEmployees")]
     public async Task<IActionResult> GetAllEmployees()
     {
         var employees = await _employeeRepository.GetAllEmployees();
@@ -24,7 +24,7 @@ public class EmployeesController : ControllerBase
         return Ok(employees);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("GetEmployeeById/{id}")]
     public async Task<IActionResult> GetEmployeeById(int id)
     {
         var employee = await _employeeRepository.GetEmployeeById(id);
@@ -32,33 +32,25 @@ public class EmployeesController : ControllerBase
         return Ok(employee);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> CreateEmployee(
-        CreateEmployeeDto createEmployeeDto)
+    [HttpPost("CreateEmployee")]
+    public async Task<IActionResult> CreateEmployee(CreateEmployeeDto createEmployeeDto)
     {
-        var employee =
-            await _employeeRepository.CreateEmployee(createEmployeeDto);
+        var employee = await _employeeRepository.CreateEmployee(createEmployeeDto);
 
         return Ok(employee);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateEmployee(
-        int id,
-        Employee employee)
+    [HttpPut("UpdateEmployee/{id}")]
+    public async Task<IActionResult> UpdateEmployee(int id, CreateEmployeeDto dto)
     {
-        if (id != employee.Id)
-        {
-            return BadRequest("Id mismatch");
-        }
+        if (dto == null)
+            return BadRequest("Invalid data");
 
-        var updatedEmployee =
-            await _employeeRepository.UpdateEmployee(employee);
+        var updatedEmployee = await _employeeRepository.UpdateEmployee(id, dto);
 
         return Ok(updatedEmployee);
     }
-
-    [HttpDelete("{id}")]
+    [HttpDelete("DeleteEmployee/{id}")]
     public async Task<IActionResult> DeleteEmployee(int id)
     {
         var result = await _employeeRepository.DeleteEmployee(id);
@@ -66,11 +58,10 @@ public class EmployeesController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("{id}/leaves")]
+    [HttpGet("GetEmployeeLeaves/{id}")]
     public async Task<IActionResult> GetEmployeeLeaves(int id)
     {
-        var leaves =
-            await _employeeRepository.GetEmployeeLeaves(id);
+        var leaves = await _employeeRepository.GetEmployeeLeaves(id);
 
         return Ok(leaves);
     }

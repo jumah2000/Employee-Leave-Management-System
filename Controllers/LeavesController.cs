@@ -16,7 +16,7 @@ public class LeavesController: ControllerBase
         _leaveRepository = leaveRepository;
     }
 
-    [HttpGet]
+    [HttpGet("GetAllLeaves")]
     public async Task<IActionResult> GetAllLeaves()
     {
         var leaves = await _leaveRepository.GetAllLeaves();
@@ -24,7 +24,7 @@ public class LeavesController: ControllerBase
         return Ok(leaves);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("GetLeaveById/{id}")]
     public async Task<IActionResult> GetLeaveById(int id)
     {
         var leave = await _leaveRepository.GetLeaveById(id);
@@ -32,83 +32,65 @@ public class LeavesController: ControllerBase
         return Ok(leave);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> CreateLeave(
-        CreateLeaveDto createLeaveDto)
+    [HttpPost("CreateLeave")]
+    public async Task<IActionResult> CreateLeave(CreateLeaveDto createLeaveDto)
     {
-        var leave =
-            await _leaveRepository.CreateLeave(createLeaveDto);
+        var leave = await _leaveRepository.CreateLeave(createLeaveDto);
 
         return Ok(leave);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateLeave(
-        int id,
-        LeaveRequest leaveRequest)
+    [HttpPut("UpdateLeave/{id}")]
+    public async Task<IActionResult> UpdateLeave(int id, [FromBody]CreateLeaveDto dto)
     {
-        if (id != leaveRequest.Id)
-        {
-            return BadRequest("Id mismatch");
-        }
+        var updatedLeave = await _leaveRepository.UpdateLeave(id, dto);
 
-        var leave =
-            await _leaveRepository.UpdateLeave(leaveRequest);
-
-        return Ok(leave);
+        return Ok(updatedLeave);
     }
-
-    [HttpDelete("{id}")]
+    [HttpDelete("DeleteLeave/{id}")]
     public async Task<IActionResult> DeleteLeave(int id)
     {
-        var result =
-            await _leaveRepository.DeleteLeave(id);
+        var result = await _leaveRepository.DeleteLeave(id);
 
         return Ok(result);
     }
 
-    [HttpGet("status/{status}")]
-    public async Task<IActionResult> GetLeavesByStatus(
-        string status)
+    [HttpGet("Status/{status}")]
+    public async Task<IActionResult> GetLeavesByStatus(string status)
     {
-        var leaves =
-            await _leaveRepository.GetLeavesByStatus(status);
+        var leaves = await _leaveRepository.GetLeavesByStatus(status);
 
         return Ok(leaves);
     }
 
-    [HttpPut("{id}/approve")]
+    [HttpPut("Approve/{id}")]
     public async Task<IActionResult> ApproveLeave(int id)
     {
-        var leave =
-            await _leaveRepository.ApproveLeave(id);
+        var leave = await _leaveRepository.ApproveLeave(id);
 
         return Ok(leave);
     }
 
-    [HttpPut("{id}/reject")]
+    [HttpPut("RejectLeave/{id}")]
     public async Task<IActionResult> RejectLeave(int id)
     {
-        var leave =
-            await _leaveRepository.RejectLeave(id);
+        var leave = await _leaveRepository.RejectLeave(id);
 
         return Ok(leave);
     }
 
-    [HttpGet("current")]
+    [HttpGet("CurrentLeave")]
     public async Task<IActionResult> GetCurrentLeaves()
     {
-        var leaves =
-            await _leaveRepository.GetCurrentLeaves();
+        var leaves = await _leaveRepository.GetCurrentLeaves();
 
         return Ok(leaves);
     }
 
-    [HttpGet("statistics")]
+    [HttpGet("Statistics")]
     public async Task<IActionResult> GetDepartmentStatistics()
     {
-        var statistics =
-            await _leaveRepository.GetDepartmentStatistics();
+        var statistics = await _leaveRepository.GetDepartmentStatistics();
 
         return Ok(statistics);
     }

@@ -11,11 +11,11 @@ public class ApplicationDbContext: DbContext
         }
         public DbSet<Employee> Employees { get; set; }
 
-         public DbSet<LeaveRequest> LeaveRequests { get; set; }
+         public DbSet<Leave> LeaveRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<LeaveRequest>()
+            modelBuilder.Entity<Leave>()
                 .HasOne(l => l.Employee)
                 .WithMany(e => e.LeaveRequests)
                 .HasForeignKey(l => l.EmployeeId);

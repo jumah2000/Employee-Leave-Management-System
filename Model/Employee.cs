@@ -1,4 +1,6 @@
-﻿namespace EmployeeLeaveManagementSystem.Model;
+﻿using System.Text.Json.Serialization;
+
+namespace EmployeeLeaveManagementSystem.Model;
 
 public class Employee
 {
@@ -8,6 +10,6 @@ public class Employee
     public string Department { get; set; }
     public DateTime DateJoined { get; set; }
     
-    
-    public ICollection<LeaveRequest> LeaveRequests { get; set; }
+    [JsonIgnore]
+    public ICollection<Leave> LeaveRequests { get; set; }
 }
