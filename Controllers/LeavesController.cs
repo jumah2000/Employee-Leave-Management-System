@@ -1,4 +1,5 @@
 ﻿using EmployeeLeaveManagementSystem.DTOs;
+using EmployeeLeaveManagementSystem.Enums;
 using EmployeeLeaveManagementSystem.Model;
 using EmployeeLeaveManagementSystem.Repositories;
 using Microsoft.AspNetCore.Mvc;
@@ -15,83 +16,157 @@ public class LeavesController: ControllerBase
     {
         _leaveRepository = leaveRepository;
     }
-
-    [HttpGet("GetAllLeaves")]
+    
+    // GET ALL LEAVES
+    [HttpGet]
     public async Task<IActionResult> GetAllLeaves()
     {
         var leaves = await _leaveRepository.GetAllLeaves();
-
         return Ok(leaves);
     }
-
-    [HttpGet("GetLeaveById/{id}")]
+    
+    // GET LEAVE BY ID
+    [HttpGet("{id}")]
     public async Task<IActionResult> GetLeaveById(int id)
     {
-        var leave = await _leaveRepository.GetLeaveById(id);
-
-        return Ok(leave);
+        try
+        {
+            var leave = await _leaveRepository.GetLeaveById(id);
+            return Ok(leave);
+        }
+        catch (Exception ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
-
-    [HttpPost("CreateLeave")]
-    public async Task<IActionResult> CreateLeave(CreateLeaveDto createLeaveDto)
+    
+    // SUBMIT LEAVE (CREATE)
+    [HttpPost]
+    public async Task<IActionResult> CreateLeave([FromBody] SubmitLeaveRequestDto dto)
     {
-        var leave = await _leaveRepository.CreateLeave(createLeaveDto);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        return Ok(leave);
+        try
+        {
+            var leave = await _leaveRepository.CreateLeave(dto);
+
+            return CreatedAtAction(
+                nameof(GetLeaveById),
+                new { id = leave.Id },
+                leave
+            );
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
-
-    [HttpPut("UpdateLeave/{id}")]
-    public async Task<IActionResult> UpdateLeave(int id, [FromBody]CreateLeaveDto dto)
+    
+    // UPDATE LEAVE REQUEST
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateLeave(int id, [FromBody] SubmitLeaveRequestDto dto)
     {
-        var updatedLeave = await _leaveRepository.UpdateLeave(id, dto);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        return Ok(updatedLeave);
+        try
+        {
+            var updated = await _leaveRepository.UpdateLeave(id, dto);
+            return Ok(updated);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
-    [HttpDelete("DeleteLeave/{id}")]
+    
+    // DELETE LEAVE
+    [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteLeave(int id)
     {
-        var result = await _leaveRepository.DeleteLeave(id);
+        try
+        {
+            var result = await _leaveRepository.DeleteLeave(id);
 
-        return Ok(result);
+            if (!result)
+                return BadRequest("Could not delete leave");
+
+            return Ok("Leave deleted successfully");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
-
-    [HttpGet("Status/{status}")]
-    public async Task<IActionResult> GetLeavesByStatus(string status)
+    
+    // APPROVE LEAVE (2-STEP WORKFLOW)
+    [HttpPost("{id}/approve")]
+    public async Task<IActionResult> ApproveLeave(int id, [FromBody] LeaveActionRequestDto dto)
+    {
+        try
+        {
+            var result = await _leaveRepository.ApproveLeave(id, dto);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+    
+    // REJECT LEAVE (FINAL STATE)
+    [HttpPost("{id}/reject")]
+    public async Task<IActionResult> RejectLeave(int id, [FromBody] LeaveActionRequestDto dto)
+    {
+        try
+        {
+            var result = await _leaveRepository.RejectLeave(id, dto);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+    
+    // GET LEAVES BY STATUS
+    [HttpGet("status/{status}")]
+    public async Task<IActionResult> GetByStatus(LeaveStatus status)
     {
         var leaves = await _leaveRepository.GetLeavesByStatus(status);
-
         return Ok(leaves);
     }
-
-    [HttpPut("Approve/{id}")]
-    public async Task<IActionResult> ApproveLeave(int id)
+    
+    // EMPLOYEE LEAVE HISTOR
+    [HttpGet("employee/{employeeId}/history")]
+    public async Task<IActionResult> GetEmployeeLeaveHistory(int employeeId)
     {
-        var leave = await _leaveRepository.ApproveLeave(id);
-
-        return Ok(leave);
+        try
+        {
+            var history = await _leaveRepository.GetEmployeeLeaveHistory(employeeId);
+            return Ok(history);
+        }
+        catch (Exception ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+    
+    // EMPLOYEES CURRENTLY ON LEAVE
+    [HttpGet("employees/on-leave")]
+    public async Task<IActionResult> GetEmployeesOnLeave()
+    {
+        var result = await _leaveRepository.GetEmployeesOnLeave();
+        return Ok(result);
+    }
+    
+    // LEAVE STATISTICS (BY DEPARTMENT)
+    [HttpGet("statistics")]
+    public async Task<IActionResult> GetStatistics()
+    {
+        var stats = await _leaveRepository.GetLeaveStatisticsByDepartment();
+        return Ok(stats);
     }
 
-    [HttpPut("RejectLeave/{id}")]
-    public async Task<IActionResult> RejectLeave(int id)
-    {
-        var leave = await _leaveRepository.RejectLeave(id);
-
-        return Ok(leave);
-    }
-
-    [HttpGet("CurrentLeave")]
-    public async Task<IActionResult> GetCurrentLeaves()
-    {
-        var leaves = await _leaveRepository.GetCurrentLeaves();
-
-        return Ok(leaves);
-    }
-
-    [HttpGet("Statistics")]
-    public async Task<IActionResult> GetDepartmentStatistics()
-    {
-        var statistics = await _leaveRepository.GetDepartmentStatistics();
-
-        return Ok(statistics);
-    }
 }

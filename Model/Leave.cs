@@ -1,4 +1,6 @@
-﻿namespace EmployeeLeaveManagementSystem.Model;
+﻿using EmployeeLeaveManagementSystem.Enums;
+
+namespace EmployeeLeaveManagementSystem.Model;
 
 public class Leave
 {
@@ -8,9 +10,11 @@ public class Leave
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public string Reason { get; set; }
-    public string Status { get; set; }= "Pending";
+    public LeaveStatus Status { get; set; }= LeaveStatus.Pending;
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;
     public Employee Employee { get; set; }
-    
-    
+
+    public ICollection<LeaveApproval> Approvals { get; set; } = new List<LeaveApproval>();
+
+
 }

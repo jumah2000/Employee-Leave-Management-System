@@ -1,15 +1,15 @@
-﻿using System.Text.Json.Serialization;
+﻿namespace EmployeeLeaveManagementSystem.DTOs.Responses;
 
-namespace EmployeeLeaveManagementSystem.Model;
-
-public class Employee
+public class EmployeeResponseDto
 {
     public int Id { get; set; }
+
     public string FullName { get; set; }
+
     public string Email { get; set; }
+
     public string Department { get; set; }
+
     public DateTime DateJoined { get; set; }
-    
-    [JsonIgnore]
-    public ICollection<Leave> Leaves { get; set; }
+
 }

@@ -1,27 +1,35 @@
 ﻿using EmployeeLeaveManagementSystem.DTOs;
+using EmployeeLeaveManagementSystem.DTOs.Responses;
+using EmployeeLeaveManagementSystem.Enums;
 using EmployeeLeaveManagementSystem.Model;
 
 namespace EmployeeLeaveManagementSystem.Repositories;
 
 public interface ILeaveRepository
 {
-    Task<IEnumerable<Leave>> GetAllLeaves();
+    // BASIC CRUD OPERATIONS
+    Task<IEnumerable<LeaveRequestResponseDto>> GetAllLeaves();
 
-    Task<Leave> GetLeaveById(int id);
+    Task<LeaveRequestResponseDto> GetLeaveById(int id);
 
-    Task<Leave> CreateLeave(CreateLeaveDto dto);
+    Task<LeaveRequestResponseDto> CreateLeave(SubmitLeaveRequestDto dto);
 
-    Task<Leave> UpdateLeave(int id, CreateLeaveDto dto);
+    Task<LeaveRequestResponseDto> UpdateLeave(int id, SubmitLeaveRequestDto dto);
 
     Task<bool> DeleteLeave(int id);
-
-    Task<IEnumerable<Leave>> GetLeavesByStatus(string status);
-
-    Task<Leave> ApproveLeave(int id);
-
-    Task<Leave> RejectLeave(int id);
-
-    Task<IEnumerable<Leave>> GetCurrentLeaves();
     
-    Task<IEnumerable<object>> GetDepartmentStatistics();
+    // APPROVAL WORKFLOW
+    Task<LeaveRequestResponseDto> ApproveLeave(int leaveId, LeaveActionRequestDto dto);
+
+    Task<LeaveRequestResponseDto> RejectLeave(int leaveId, LeaveActionRequestDto dto);
+    
+    // BUSINESS RULE QUERIES
+    
+    Task<IEnumerable<LeaveRequestResponseDto>> GetLeavesByStatus(LeaveStatus status);
+
+    Task<IEnumerable<LeaveRequestResponseDto>> GetEmployeeLeaveHistory(int employeeId);
+
+    Task<IEnumerable<EmployeeResponseDto>> GetEmployeesOnLeave();
+
+    Task<object> GetLeaveStatisticsByDepartment();
 }

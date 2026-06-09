@@ -78,21 +78,50 @@ namespace EmployeeLeaveManagementSystem.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("LeaveRequests");
+                    b.ToTable("Leaves");
+                });
+
+            modelBuilder.Entity("EmployeeLeaveManagementSystem.Model.LeaveApproval", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Action")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ApproverId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateActed")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LeaveId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LeaveId");
+
+                    b.ToTable("LeaveApprovals");
                 });
 
             modelBuilder.Entity("EmployeeLeaveManagementSystem.Model.Leave", b =>
                 {
                     b.HasOne("EmployeeLeaveManagementSystem.Model.Employee", "Employee")
-                        .WithMany("LeaveRequests")
+                        .WithMany("Leaves")
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -100,9 +129,25 @@ namespace EmployeeLeaveManagementSystem.Migrations
                     b.Navigation("Employee");
                 });
 
+            modelBuilder.Entity("EmployeeLeaveManagementSystem.Model.LeaveApproval", b =>
+                {
+                    b.HasOne("EmployeeLeaveManagementSystem.Model.Leave", "Leave")
+                        .WithMany("Approvals")
+                        .HasForeignKey("LeaveId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Leave");
+                });
+
             modelBuilder.Entity("EmployeeLeaveManagementSystem.Model.Employee", b =>
                 {
-                    b.Navigation("LeaveRequests");
+                    b.Navigation("Leaves");
+                });
+
+            modelBuilder.Entity("EmployeeLeaveManagementSystem.Model.Leave", b =>
+                {
+                    b.Navigation("Approvals");
                 });
 #pragma warning restore 612, 618
         }

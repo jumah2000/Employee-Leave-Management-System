@@ -1,146 +1,223 @@
 ﻿using EmployeeLeaveManagementSystem.Data;
 using EmployeeLeaveManagementSystem.DTOs;
+using EmployeeLeaveManagementSystem.DTOs.Responses;
+using EmployeeLeaveManagementSystem.Enums;
 using EmployeeLeaveManagementSystem.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace EmployeeLeaveManagementSystem.Repositories;
 
 public class EmployeeRepository : IEmployeeRepository
-
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly ApplicationDbContext _context;
 
-   public EmployeeRepository(ApplicationDbContext dbContext)
+    // I inject DbContext here so we can access the database
+    public EmployeeRepository(ApplicationDbContext context)
     {
-        _dbContext = dbContext;
+        _context = context;
     }
-
-      public async Task<IEnumerable<Employee>> GetAllEmployees()
+    
+    // GET ALL EMPLOYEES
+    public async Task<IEnumerable<EmployeeResponseDto>> GetAllEmployees()
     {
-        var employees = await _dbContext.Employees.ToListAsync();
-
-        return employees;
+        // I fetch all employees from database
+        // Then I convert them into Response DTO so we don't expose raw database models
+        return await _context.Employees
+            .Select(e => new EmployeeResponseDto
+            {
+                Id = e.Id,
+                FullName = e.FullName,
+                Email = e.Email,
+                Department = e.Department,
+                DateJoined = e.DateJoined
+            })
+            .ToListAsync();
     }
-
-    public async Task<Employee> GetEmployeeById(int id)
+    
+    // GET EMPLOYEE BY ID
+    public async Task<EmployeeResponseDto> GetEmployeeById(int id)
     {
-        var employee = await _dbContext.Employees
+        // search for a single employee using their ID
+        var employee = await _context.Employees
             .FirstOrDefaultAsync(e => e.Id == id);
 
+        // If employee does not exist, its stop execution
         if (employee == null)
-        {
             throw new Exception("Employee not found");
-        }
 
-        return employee;
+        // this map database model to DTO before returning
+        return new EmployeeResponseDto
+        {
+            Id = employee.Id,
+            FullName = employee.FullName,
+            Email = employee.Email,
+            Department = employee.Department,
+            DateJoined = employee.DateJoined
+        };
     }
-   
-    public async Task<Employee> CreateEmployee(CreateEmployeeDto createEmployeeDto)
+    
+    // CREATE EMPLOYEE
+    // =========================
+    public async Task<EmployeeResponseDto> CreateEmployee(CreateEmployeeRequestDto dto)
     {
-        if (string.IsNullOrWhiteSpace(createEmployeeDto.FullName))
-        {
-            throw new Exception("Full Name is required");
-        }
+        // This first check if an employee already exists with same email
+        // This prevents duplicate employee records
+        var exists = await _context.Employees
+            .AnyAsync(e => e.Email == dto.Email);
 
-        if (string.IsNullOrWhiteSpace(createEmployeeDto.Email))
-        {
-            throw new Exception("Email is required");
-        }
-
-        if (string.IsNullOrWhiteSpace(createEmployeeDto.Department))
-        {
-            throw new Exception("Department is required");
-        }
-
-        var employeeExists = await _dbContext.Employees
-            .AnyAsync(e => e.Email.ToLower() == createEmployeeDto.Email.ToLower());
-
-        if (employeeExists)
-        {
+        if (exists)
             throw new Exception("Employee with this email already exists");
-        }
 
+        // We create a new employee object from request data
         var employee = new Employee
         {
-            FullName = createEmployeeDto.FullName,
-            Email = createEmployeeDto.Email,
-            Department = createEmployeeDto.Department,
-            DateJoined = createEmployeeDto.DateJoined
+            FullName = dto.FullName,
+            Email = dto.Email,
+            Department = dto.Department,
+            DateJoined = DateTime.UtcNow
         };
 
-        await _dbContext.Employees.AddAsync(employee);
+        // Add employee to database
+        _context.Employees.Add(employee);
+        await _context.SaveChangesAsync();
 
-        await _dbContext.SaveChangesAsync();
-
-        return employee;
+        // Return clean response DTO
+        return new EmployeeResponseDto
+        {
+            Id = employee.Id,
+            FullName = employee.FullName,
+            Email = employee.Email,
+            Department = employee.Department,
+            DateJoined = employee.DateJoined
+        };
     }
- 
-    public async Task<Employee> UpdateEmployee(int id, CreateEmployeeDto dto)
+    
+    // UPDATE EMPLOYEE
+    public async Task<EmployeeResponseDto> UpdateEmployee(int id, UpdateEmployeeRequestDto dto)
     {
-        var employeeExist = await _dbContext.Employees
+        // Find employee by ID
+        var employee = await _context.Employees
             .FirstOrDefaultAsync(e => e.Id == id);
 
-        if (employeeExist == null)
+        // If not found, stop execution
+        if (employee == null)
             throw new Exception("Employee not found");
 
-        if (string.IsNullOrWhiteSpace(dto.FullName))
-            throw new Exception("Full Name is required");
+        // Update only allowed fields
+        employee.FullName = dto.FullName;
+        employee.Email = dto.Email;
+        employee.Department = dto.Department;
 
-        if (string.IsNullOrWhiteSpace(dto.Email))
-            throw new Exception("Email is required");
+        // Save changes to database
+        await _context.SaveChangesAsync();
 
-        if (string.IsNullOrWhiteSpace(dto.Department))
-            throw new Exception("Department is required");
-
-        var emailExists = await _dbContext.Employees
-            .AnyAsync(e => e.Email.ToLower().Trim() == dto.Email.ToLower().Trim()
-                           && e.Id != id);
-
-        if (emailExists)
-            throw new Exception("Another employee already uses this email");
-
-        employeeExist.FullName = dto.FullName;
-        employeeExist.Email = dto.Email;
-        employeeExist.Department = dto.Department;
-
-        // DO NOT touch DateJoined
-        await _dbContext.SaveChangesAsync();
-
-        return employeeExist;
+        // Return updated data as DTO
+        return new EmployeeResponseDto
+        {
+            Id = employee.Id,
+            FullName = employee.FullName,
+            Email = employee.Email,
+            Department = employee.Department,
+            DateJoined = employee.DateJoined
+        };
     }
+    
+    // DELETE EMPLOYEE
+    
     public async Task<bool> DeleteEmployee(int id)
     {
-        var employee = await _dbContext.Employees
+        // Find employee first
+        var employee = await _context.Employees
             .FirstOrDefaultAsync(e => e.Id == id);
 
         if (employee == null)
-        {
             throw new Exception("Employee not found");
-        }
 
-        _dbContext.Employees.Remove(employee);
+        // BUSINESS RULE:
+        // We cannot delete an employee who currently has active leave
+        // (Pending or Processing means leave is still ongoing workflow)
+        var hasActiveLeave = await _context.Leaves
+            .AnyAsync(l =>
+                l.EmployeeId == id &&
+                (l.Status == LeaveStatus.Pending ||
+                 l.Status == LeaveStatus.Processing));
 
-        await _dbContext.SaveChangesAsync();
+        if (hasActiveLeave)
+            throw new Exception("Cannot delete employee with active leave requests");
+
+        // Remove employee from database
+        _context.Employees.Remove(employee);
+        await _context.SaveChangesAsync();
 
         return true;
     }
-
-    public async Task<IEnumerable<Leave>> GetEmployeeLeaves(int employeeId)
+    
+    // GET EMPLOYEE LEAVE HISTORY
+    public async Task<IEnumerable<LeaveRequestResponseDto>> GetEmployeeLeaves(int employeeId)
     {
-        var employee = await _dbContext.Employees
-            .FirstOrDefaultAsync(e => e.Id == employeeId);
+        // First confirm employee exists
+        var employeeExists = await _context.Employees
+            .AnyAsync(e => e.Id == employeeId);
 
-        if (employee == null)
-        {
+        if (!employeeExists)
             throw new Exception("Employee not found");
-        }
 
-        var leaves = await _dbContext.LeaveRequests
+        // Get all leaves for that employee
+        // Include approvals so we can show full history
+        return await _context.Leaves
             .Where(l => l.EmployeeId == employeeId)
-            .OrderByDescending(l => l.DateCreated)
-            .ToListAsync();
+            .Include(l => l.Approvals)
+            .Select(l => new LeaveRequestResponseDto
+            {
+                Id = l.Id,
+                EmployeeId = l.EmployeeId,
+                LeaveType = l.LeaveType,
+                StartDate = l.StartDate,
+                EndDate = l.EndDate,
+                Reason = l.Reason,
 
-        return leaves;
+                // Convert enum to string for frontend readability
+                Status = l.Status.ToString(),
+
+                DateCreated = l.DateCreated,
+
+                // Map each approval record into a clean DTO
+                Approvals = l.Approvals.Select(a => new LeaveApprovalResponseDto
+                {
+                    ApproverId = a.ApproverId,
+                    Action = a.Action.ToString(),
+                    Reason = a.Reason,
+                    DateActed = a.DateActed
+                }).ToList()
+            })
+            .ToListAsync();
     }
+    
+    // GET EMPLOYEES CURRENTLY ON LEAVE
+    public async Task<IEnumerable<EmployeeResponseDto>> GetEmployeesOnLeave()
+    {
+        var today = DateTime.UtcNow;
+
+        // We check only APPROVED leaves that are currently active (date range match)
+        return await _context.Leaves
+            .Include(l => l.Employee)
+            .Where(l =>
+                l.Status == LeaveStatus.Approved &&
+                l.StartDate <= today &&
+                l.EndDate >= today)
+            .Select(l => new EmployeeResponseDto
+            {
+                Id = l.Employee.Id,
+                FullName = l.Employee.FullName,
+                Email = l.Employee.Email,
+                Department = l.Employee.Department,
+                DateJoined = l.Employee.DateJoined
+            })
+
+            // Remove duplicates in case employee has multiple leave records
+            .Distinct()
+            .ToListAsync();
+    }
+
 }
 
