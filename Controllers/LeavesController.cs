@@ -18,7 +18,7 @@ public class LeavesController: ControllerBase
     }
     
     // GET ALL LEAVES
-    [HttpGet]
+    [HttpGet(" GetAllLeaves")]
     public async Task<IActionResult> GetAllLeaves()
     {
         var leaves = await _leaveRepository.GetAllLeaves();
@@ -26,7 +26,7 @@ public class LeavesController: ControllerBase
     }
     
     // GET LEAVE BY ID
-    [HttpGet("{id}")]
+    [HttpGet(" GetLeaveById/{id}")]
     public async Task<IActionResult> GetLeaveById(int id)
     {
         try
@@ -41,7 +41,7 @@ public class LeavesController: ControllerBase
     }
     
     // SUBMIT LEAVE (CREATE)
-    [HttpPost]
+    [HttpPost(" CreateLeave")]
     public async Task<IActionResult> CreateLeave([FromBody] SubmitLeaveRequestDto dto)
     {
         if (!ModelState.IsValid)
@@ -64,7 +64,7 @@ public class LeavesController: ControllerBase
     }
     
     // UPDATE LEAVE REQUEST
-    [HttpPut("{id}")]
+    [HttpPut("UpdateLeave/{id}")]
     public async Task<IActionResult> UpdateLeave(int id, [FromBody] SubmitLeaveRequestDto dto)
     {
         if (!ModelState.IsValid)
@@ -82,7 +82,7 @@ public class LeavesController: ControllerBase
     }
     
     // DELETE LEAVE
-    [HttpDelete("{id}")]
+    [HttpDelete("DeleteLeave/{id}")]
     public async Task<IActionResult> DeleteLeave(int id)
     {
         try
@@ -101,7 +101,7 @@ public class LeavesController: ControllerBase
     }
     
     // APPROVE LEAVE (2-STEP WORKFLOW)
-    [HttpPost("{id}/approve")]
+    [HttpPost("approve/{id}")]
     public async Task<IActionResult> ApproveLeave(int id, [FromBody] LeaveActionRequestDto dto)
     {
         try
@@ -116,7 +116,7 @@ public class LeavesController: ControllerBase
     }
     
     // REJECT LEAVE (FINAL STATE)
-    [HttpPost("{id}/reject")]
+    [HttpPost("reject/{id}")]
     public async Task<IActionResult> RejectLeave(int id, [FromBody] LeaveActionRequestDto dto)
     {
         try
@@ -139,7 +139,7 @@ public class LeavesController: ControllerBase
     }
     
     // EMPLOYEE LEAVE HISTOR
-    [HttpGet("employee/{employeeId}/history")]
+    [HttpGet("GetEmployeeLeaveHistory/{employeeId}")]
     public async Task<IActionResult> GetEmployeeLeaveHistory(int employeeId)
     {
         try
@@ -154,7 +154,7 @@ public class LeavesController: ControllerBase
     }
     
     // EMPLOYEES CURRENTLY ON LEAVE
-    [HttpGet("employees/on-leave")]
+    [HttpGet("employeesOn-leave")]
     public async Task<IActionResult> GetEmployeesOnLeave()
     {
         var result = await _leaveRepository.GetEmployeesOnLeave();
